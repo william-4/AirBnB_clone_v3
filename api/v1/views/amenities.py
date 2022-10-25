@@ -2,69 +2,54 @@
 """Objects that handles all default RESTFul API actions"""
 from api.v1.views import app_views
 from flask import jsonify, abort, request
-from models import storage
-from models.amenity import Amenity
+from models import storage, CNC
+from flasgger.utils import swag_from
 
 
-@app_views.route("/amenities", methods=['GET'], strict_slashes=False)
-def all_amenities():
-    """Retrieves the list of all Amenity objects"""
-    amenities = []
-    for key, value in storage.all("Amenity").items():
-        amenities.append(value.to_dict())
-    return jsonify(amenities)
+@app_views.route('/amenities/', methods=['GET', 'POST'])
+@swag_from('swagger_yaml/amenities_no_id.yml', methods=['GET', 'POST'])
+def amenities_no_id(amenity_id=None):
+    """
+        amenities route that handles http requests no ID given
+    """
+    if request.method == 'GET':
+        all_amenities = storage.all('Amenity')
+        all_amenities = [obj.to_json() for obj in all_amenities.values()]
+        return jsonify(all_amenities)
+
+    if request.method == 'POST':
+        req_json = request.get_json()
+        if req_json is None:
+            abort(400, 'Not a JSON')
+        if req_json.get('name') is None:
+            abort(400, 'Missing name')
+        Amenity = CNC.get('Amenity')
+        new_object = Amenity(**req_json)
+        new_object.save()
+        return jsonify(new_object.to_json()), 201
 
 
-@app_views.route("/amenities/<amenity_id>", methods=['GET'],
-                 strict_slashes=False)
-def obj_amenity(amenity_id):
-    """Retrieves a Amenity object"""
-    amenity = storage.get(Amenity, amenity_id)
-    if amenity:
-        return jsonify(amenity.to_dict())
-    else:
-        abort(404)
+@app_views.route('/amenities/<amenity_id>', methods=['GET', 'DELETE', 'PUT'])
+@swag_from('swagger_yaml/amenities_id.yml', methods=['GET', 'DELETE', 'PUT'])
+def amenities_with_id(amenity_id=None):
+    """
+        amenities route that handles http requests with ID given
+    """
+    amenity_obj = storage.get('Amenity', amenity_id)
+    if amenity_obj is None:
+        abort(404, 'Not found')
 
+    if request.method == 'GET':
+        return jsonify(amenity_obj.to_json())
 
-@app_views.route("/amenities/<amenity_id>", methods=['DELETE'],
-                 strict_slashes=False)
-def del_amenity(amenity_id):
-    """Deletes a Amenity object"""
-    amenity = storage.get(Amenity, amenity_id)
-    if amenity:
-        storage.delete(amenity)
-        storage.save()
+    if request.method == 'DELETE':
+        amenity_obj.delete()
+        del amenity_obj
         return jsonify({}), 200
-    else:
-        abort(404)
 
-
-@app_views.route("/amenities", methods=['POST'], strict_slashes=False)
-def create_amenity():
-    """Creates a Amenity"""
-    if not request.get_json():
-        abort(400, description="Not a JSON")
-    if 'name' not in request.get_json():
-        abort(400, description="Missing name")
-    kwargs = request.get_json()
-    amenity = Amenity(**kwargs)
-    storage.new(amenity)
-    storage.save()
-    return (jsonify(amenity.to_dict()), 201)
-
-
-@app_views.route("/amenities/<amenity_id>", methods=['PUT'],
-                 strict_slashes=False)
-def update_amenity(amenity_id):
-    """Updates a Amenity object"""
-    content = request.get_json()
-    if content is None:
-        abort(400, description='Not a JSON')
-    amenity = storage.get(Amenity, amenity_id)
-    if amenity is None:
-        abort(404)
-    for key, val in content.items():
-        if key != 'id' and key != 'created_at' and key != 'updated_at':
-            setattr(amenity, key, val)
-    storage.save()
-    return (jsonify(amenity.to_dict()), 200)
+    if request.method == 'PUT':
+        req_json = request.get_json()
+        if req_json is None:
+            abort(400, 'Not a JSON')
+        amenity_obj.bm_update(req_json)
+        return jsonify(amenity_obj.to_json()), 200
