@@ -78,12 +78,17 @@ class DBStorage:
             return self.__session.query(cls).filter_by(id=id).first()
         return None
 
-    def count(self, cls=None):
-        """Counts number of objects in db storage"""
-        if cls is None:
-            return len(self.all())
-        return len(self.all(cls))
-
     def close(self):
         """call remove() method on the private session attribute"""
         self.__session.remove()
+
+    def count(self, cls=None):
+        """ Method to count the number of objects in storage """
+        if not cls:
+            total = 0
+            for v in classes.values():
+                total += len(models.storage.all(v).values())
+        else:
+            total = len(models.storage.all(cls).values())
+
+        return (total)     
