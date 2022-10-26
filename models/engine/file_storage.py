@@ -77,8 +77,11 @@ class FileStorage:
                 return self.__objects[key]
         return None
 
-    def count(self, cls=None): # city
-        """return count of: objects of a given class or all object is cls is not given"""
+    def count(self, cls=None):  # city
+        """
+        return count of: objects of a given class or
+        all object is cls is not given
+        """
         if cls is None:
             return len(self.all())
         return len(self.all(cls))
