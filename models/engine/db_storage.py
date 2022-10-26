@@ -3,6 +3,7 @@
 Contains the class DBStorage
 """
 
+
 import models
 from models.amenity import Amenity
 from models.base_model import BaseModel, Base
@@ -70,6 +71,12 @@ class DBStorage:
         sess_factory = sessionmaker(bind=self.__engine, expire_on_commit=False)
         Session = scoped_session(sess_factory)
         self.__session = Session
+
+    def get(self, cls, id):
+        """Retrieves one object"""
+        if cls and id:
+            return self.__session.query(cls).filter_by(id=id).first()
+        return None
 
     def close(self):
         """call remove() method on the private session attribute"""
