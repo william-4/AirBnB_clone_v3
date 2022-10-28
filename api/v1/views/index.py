@@ -22,8 +22,8 @@ def stats():
     classes = {"Amenity": "amenities", "City": "cities",
                "Place": "places", "Review": "reviews",
                "State": "states", "User": "users"}
-    num_objs = {}
-    for i in range(len(classes)):
-        num_objs[names[i]] = storage.count(classes[i])
+    stats_dict = {}
+    for cls in classes.keys():
+        stats_dict[classes[cls]] = storage.count(cls)
 
-    return jsonify(num_objs)
+    return jsonify(stats_dict)
