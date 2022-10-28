@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 """ Program that define the root of the main app """
 
-from os import getenv
+from os import environ
 from flask import Flask, jsonify, render_template, make_response
 from flask_cors import CORS
 from api.v1.views import app_views
@@ -9,11 +9,12 @@ from models import storage
 
 app = Flask(__name__)
 app.register_blueprint(app_views, url_prefix="/api/v1")
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
 cors = CORS(app, resources={r"/*": {"origins": "0.0.0.0"}})
 
 
 @app.teardown_appcontext
-def teardown_storage(x):
+def close_db(error):
     """calls close() on storage"""
     storage.close()
 
@@ -25,8 +26,8 @@ def error_handler(error):
 
 
 if __name__ == "__main__":
-    host = os.getenv('HBNB_API_HOST')
-    port = os.getenv('HBNB_API_PORT')
+    host = environ.get('HBNB_API_HOST')
+    port = environ.get('HBNB_API_PORT')
     if not host:
         host = '0.0.0.0'
     if not port:
