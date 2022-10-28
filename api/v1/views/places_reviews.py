@@ -10,17 +10,15 @@ from models.place import Place
 
 @app_views.route("/places/<place_id>/reviews", methods=['GET'],
                  strict_slashes=False)
-def review_by_id(place_id):
-    """ List al reviws in a place id """
-    rev = []
-    place = storage.all('Review')
-    if place:
-        for key, value in place.items():
-            if value.to_dict()['place_id'] == place_id:
-                rev.append(value.to_dict())
-        return jsonify(rev)
-    else:
+def get_review(place_id):
+    """
+    Retrieves the list of all Review objects of a Place """
+    place = storage.get(Place, place_id)
+    if not place:
         abort(404)
+    reviews = [review.to_dict() for review in place.reviews]
+
+    return jsonify(reviews)
 
 
 @app_views.route("/reviews/<review_id>", methods=['GET'], strict_slashes=False)
