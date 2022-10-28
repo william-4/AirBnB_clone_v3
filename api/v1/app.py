@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 """ Program that define the root of the main app """
 
-from os import environ
+from os import getenv
 from flask import Flask, jsonify, render_template, make_response
 from flask_cors import CORS
-from views import app_views
+from api.v1.views import app_views
 from models import storage
 
 app = Flask(__name__)
@@ -25,8 +25,8 @@ def error_handler(error):
 
 
 if __name__ == "__main__":
-    host = environ.get('HBNB_API_HOST')
-    port = environ.get('HBNB_API_PORT')
+    host = os.getenv('HBNB_API_HOST')
+    port = os.getenv('HBNB_API_PORT')
     if not host:
         host = '0.0.0.0'
     if not port:
